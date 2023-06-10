@@ -1,6 +1,6 @@
 package models
 
-import "apirest/db"
+import "gorm/db"
 
 type User struct {
 	Id       int64  `json:"id"`
@@ -9,6 +9,10 @@ type User struct {
 	Email    string `json:"email"`
 }
 type Users []User
+
+func MigrarUsers() {
+	db.Database.AutoMigrate(User{})
+}
 
 const UserSchema string = `CREATE TABLE users(
 	id INT(6) UNSIGNED AUTO_INCREMENT PRIMARY KEY,
