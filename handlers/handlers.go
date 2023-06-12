@@ -8,6 +8,7 @@ import (
 	"strconv"
 
 	"github.com/gorilla/mux"
+	"gorm.io/gorm"
 )
 
 func GetUsers(rw http.ResponseWriter, r *http.Request) {
@@ -19,21 +20,27 @@ func GetUsers(rw http.ResponseWriter, r *http.Request) {
 
 func GetUser(rw http.ResponseWriter, r *http.Request) {
 
-	user := getUserById(r)
+	if user, err := getUserById(r); err != nil {
+		sendError(rw, http.StatusNotFound)
+	} else {
+		sendData(rw, user, http.StatusOK)
+	}
 
-	sendData(rw, user, http.StatusOK)
 }
 
-func getUserById(r *http.Request) models.User {
+func getUserById(r *http.Request) (models.User, *gorm.DB) {
 
 	//Obtener ID
 	vars := mux.Vars(r)
 	userId, _ := strconv.Atoi(vars["id"])
 
 	user := models.User{}
-	db.Database.First(&user, userId)
 
-	return user
+	if err := db.Database.First(&user, userId); err.Error != nil {
+		return user, err
+	} else {
+		return user, nil
+	}
 
 }
 
@@ -47,7 +54,7 @@ func CreateUser(rw http.ResponseWriter, r *http.Request) {
 		sendError(rw, http.StatusUnprocessableEntity)
 	} else {
 		db.Database.Save(&user)
-		sendData(rw, user, http.StatusCreated)
+		sendData(rw, user, http.StatusOK)
 	}
 
 }
@@ -57,19 +64,22 @@ func UpdateUser(rw http.ResponseWriter, r *http.Request) {
 	//Obtener registro
 	var userId int64
 
-	user_ant := getUserById(r)
-	userId = user_ant.Id
-
-	//Actualizar un registro
-	user := models.User{}
-	decoder := json.NewDecoder(r.Body)
-
-	if err := decoder.Decode(&user); err != nil {
-		sendError(rw, http.StatusUnprocessableEntity)
+	if user_ant, err := getUserById(r); err != nil {
+		sendError(rw, http.StatusNotFound)
 	} else {
-		user.Id = userId
-		db.Database.Save(&user)
-		sendData(rw, user, http.StatusCreated)
+		userId = user_ant.Id
+
+		//Actualizar un registro
+		user := models.User{}
+		decoder := json.NewDecoder(r.Body)
+
+		if err := decoder.Decode(&user); err != nil {
+			sendError(rw, http.StatusUnprocessableEntity)
+		} else {
+			user.Id = userId
+			db.Database.Save(&user)
+			sendData(rw, user, http.StatusCreated)
+		}
 	}
 
 }
