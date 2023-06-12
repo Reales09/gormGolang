@@ -1,0 +1,4 @@
+# gorm/handlers
+handlers\handlers.go:89:18: undefined: getUserByRequest
+handlers\handlers.go:90:10: undefined: models.SendFound
+handlers\handlers.go:93:10: undefined: models.SendData

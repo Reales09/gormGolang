@@ -84,28 +84,12 @@ func UpdateUser(rw http.ResponseWriter, r *http.Request) {
 
 }
 
-/*
 func DeleteUser(rw http.ResponseWriter, r *http.Request) {
 
-	if user, err := getUserByRequest(r); err != nil {
-		models.SendFound(rw)
+	if user, err := getUserById(r); err != nil {
+		sendError(rw, http.StatusNotFound)
 	} else {
-		user.Delete()
-		models.SendData(rw, user)
+		db.Database.Delete(&user)
+		sendData(rw, user, http.StatusOK)
 	}
 }
-
-func getUserByRequest(r *http.Request) (models.User, error) {
-
-	//Obtener ID
-	vars := mux.Vars(r)
-	userId, _ := strconv.Atoi(vars["id"])
-
-	if user, err := models.GetUser(userId); err != nil {
-		return *user, err
-
-	} else {
-		return *user, nil
-	}
-}
-*/
